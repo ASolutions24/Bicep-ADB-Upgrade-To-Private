@@ -59,10 +59,10 @@ stages:
         scriptType: 'bash'
         scriptLocation: 'inlineScript'
         inlineScript: |
-          az deployment sub what-if \
+          az deployment group what-if \
             --template-file $(Build.SourcesDirectory)/$(templateFile) \
             --parameters '$(Build.SourcesDirectory)/$(templateParameterFile)' \
-            --location '$(location)'
+            --resource-group '$(resourceGroupName)''
 
 - stage: Deploy
   jobs:
@@ -77,9 +77,10 @@ stages:
             - task: AzureResourceManagerTemplateDeployment@3
               name: DeployBicepTemplate
               inputs:
-                deploymentScope: 'Subscription'
+                deploymentScope: 'Resource Group'
                 azureResourceManagerConnection: '$(azureServiceConnection)'
                 action: 'Create Or Update Resource Group'
+                resourceGroupName: '$(resourceGroupName)'
                 location: '$(location)'
                 templateLocation: 'Linked artifact'
                 csmFile: '$(Build.SourcesDirectory)/$(templateFile)'
