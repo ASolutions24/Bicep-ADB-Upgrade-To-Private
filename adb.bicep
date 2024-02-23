@@ -1,12 +1,12 @@
 param disablePublicIp bool = true
-param publicNetworkAccess string = 'Enabled'
+param publicNetworkAccess string = 'Disabled'
 
 @description('Indicates whether to retain or remove the AzureDatabricks outbound NSG rule - possible values are AllRules or NoAzureDatabricksRules.')
 @allowed([
   'AllRules'
   'NoAzureDatabricksRules'
 ])
-param requiredNsgRules string = 'AllRules'
+param requiredNsgRules string = 'NoAzureDatabricksRules'
 
 @description('Location for all resources.')
 param location string //= resourceGroup().location
@@ -35,15 +35,12 @@ resource subnet 'Microsoft.Network/virtualNetworks/subnets@2022-11-01' existing 
   name: PrivateEndpointSubnetName
   parent: vnet
 }
-output subnetid string = subnet.id
-
 
 @description('The name of the Azure Databricks workspace to create.')
 param workspaceName string
 
 var managedResourceGroupName = 'databricks-rg-${workspaceName}-${uniqueString(workspaceName, resourceGroup().id)}'
-var trimmedMRGName = substring(managedResourceGroupName, 0, min(length(managedResourceGroupName), 90))
-var managedResourceGroupId = '${subscription().id}/resourceGroups/${trimmedMRGName}'
+var managedResourceGroupId = managedResourceGroup.id
 
 
 var privateEndpointName = '${workspaceName}-pvtEndpoint'
@@ -52,7 +49,10 @@ var privateDnsZoneName = 'privatelink.azuredatabricks.net'
 var pvtEndpointDnsGroupName = '${privateEndpointName}/mydnsgroupname'
 var pvtEndpointBrowserAuthDnsGroupName = '${privateEndpointBrowserAuthName}/mydnsgroupname'
 
-
+resource managedResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing = {
+  scope: subscription()
+  name: managedResourceGroupName
+}
 resource symbolicname 'Microsoft.Databricks/workspaces@2023-02-01' = {
   name: workspaceName
   location: location
