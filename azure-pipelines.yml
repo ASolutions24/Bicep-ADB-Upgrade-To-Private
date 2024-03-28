@@ -89,3 +89,20 @@ stages:
                 csmParametersFile: '$(Build.SourcesDirectory)/$(templateParameterFile)'
                 deploymentMode: 'Incremental'
                 deploymentName: 'DeployPipelineTemplate'
+
+            - task: PowerShell@2
+              inputs:
+                targetType: 'inline'
+                script: |
+                  # Write your PowerShell commands here.
+                  
+                  nslookup adb-870610531446437.17.azuredatabricks.net
+                  
+                  $ipaddress = "adb-870610531446437.17.azuredatabricks.net"
+                  $port = "443"
+                  $connection = New-Object System.Net.Sockets.TcpClient($ipaddress, $port)
+                  if ($connection.Connected) {
+                       Write-Host "Success" 
+                  } else { 
+                       Write-Host "Failed" 
+                  }
